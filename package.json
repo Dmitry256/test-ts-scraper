@@ -3,9 +3,18 @@
   "version": "1.0.0",
   "main": "parse.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "parse": "ts-node ./parse.ts"
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "@types/node": "^20.14.2",
+    "crawlee": "^3.10.5",
+    "node-html-parser": "^6.1.13",
+    "playwright": "^1.44.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
 }
