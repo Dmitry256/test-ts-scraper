@@ -51,7 +51,8 @@ const crawler = new PlaywrightCrawler({
     failedRequestHandler({ request }) {
         console.log(`Request ${request.url} failed.`);
     },
-    useSessionPool: true, // Use session pool to manage sessions
+    // headless: false
+    // useSessionPool: true, // Use session pool to manage sessions
 });
 
 crawler.addRequests([
