@@ -9,6 +9,7 @@ const crawler = new PlaywrightCrawler({
             waitUntil: 'domcontentloaded',
             timeout: 60000,
         });
+        await page.waitForTimeout(5000);
         const htmlSource: string  = await page.content();
         const fullPageElement = parse(htmlSource);
         const tableSource = fullPageElement.querySelector('.span8 .table.table-bordered.table-hover.table-responsive-flex');
@@ -23,7 +24,7 @@ const crawler = new PlaywrightCrawler({
 
 
 function extractTableContent(tableSource: HTMLElement | null): Record<string, any> {
-    if (tableSource === null) return {}
+    if (tableSource === null) return {};
     const tableContent: Record<string, any> = {};
     const rows = tableSource.querySelectorAll('tr');
     rows.forEach(row => {
@@ -42,10 +43,12 @@ function extractTableContent(tableSource: HTMLElement | null): Record<string, an
 
             const osIcons = cells[1].querySelectorAll('svg');
             if (osIcons.length > 0) {
+                const steamDeckPlayable = cells[1].querySelectorAll('[aria-label="Steam Deck: Playable"]')
                 value = Array.from(cells[1].childNodes)
                     .filter(node => node.nodeType === NodeType.TEXT_NODE)
                     .map(node => node.textContent?.trim())
                     .filter(text => text);
+                if (steamDeckPlayable.length > 0) {value.push('Steam Deck')};
             }
             tableContent[key] = value;
         }
@@ -69,3 +72,4 @@ async function fetchGameData(url: string) {
 }
 
 fetchGameData('http://steamdb.info/app/730/charts/')
+// fetchGameData('http://steamdb.info/app/2987980/charts/')
