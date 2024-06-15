@@ -1,5 +1,5 @@
 import { PlaywrightCrawler, Dataset } from '@crawlee/playwright';
-import { parse } from 'node-html-parser';
+import { parse, HTMLElement } from 'node-html-parser';
 
 const crawler = new PlaywrightCrawler({
     async requestHandler({ page, request, log }) {
@@ -11,53 +11,80 @@ const crawler = new PlaywrightCrawler({
             timeout: 60000,
         });
 
-        const body = await page.content();
+        const htmlSource: string  = await page.content();
+        // const extractedTableContent: Record<string, any> = {};
+        const fullPageElement = parse(htmlSource);
+        const tableSource = fullPageElement.querySelector('.span8 .table.table-bordered.table-hover.table-responsive-flex');
 
-        const data: any = {};
-        const root = parse(body);
-        const tables = root.querySelectorAll('.table.table-bordered.table-hover.table-responsive-flex');
-        const table = tables.find(t => !t.id); 
+        const extractedTableContent = extractTableContent(tableSource);
 
-        const rows = table?.querySelectorAll('tr');
-        rows?.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length === 2) {
-                const key = cells[0].innerText.trim();
-                let value: any = cells[1].innerText.trim();
+        // const rows = tableSource?.querySelectorAll('tr');
+        // rows?.forEach(row => {
+        //     const cells = row.querySelectorAll('td');
+        //     if (cells.length === 2) {
+        //         const key = cells[0].innerText.trim();
+        //         let value: any = cells[1].innerText.trim();
                     
-                const linkElement = cells[1].querySelector('a');
-                if (linkElement) {
-                    value = {
-                        text: linkElement.innerText.trim(),
-                        href: linkElement.getAttribute('href') || ''
-                    };
-                }
+        //         const linkElement = cells[1].querySelector('a');
+        //         if (linkElement) {
+        //             value = {
+        //                 text: linkElement.innerText.trim(),
+        //                 href: linkElement.getAttribute('href') || ''
+        //             };
+        //         }
 
-                const osIcons = cells[1].querySelectorAll('svg');
-                if (osIcons.length > 0) {
-                    value = Array.from(cells[1].childNodes)
-                        .filter(node => node.nodeType === 3)
-                        .map(node => node.textContent.trim())
-                        .filter(text => text);
-                }
-                data[key] = value;
-            }
-        });
+        //         const osIcons = cells[1].querySelectorAll('svg');
+        //         if (osIcons.length > 0) {
+        //             value = Array.from(cells[1].childNodes)
+        //                 .filter(node => node.nodeType === 3)
+        //                 .map(node => node.textContent.trim())
+        //                 .filter(text => text);
+        //         }
+        //         extractedTableContent[key] = value;
+        //     }
+        // });
 
-        await Dataset.pushData({
-            data
-        });
+        await Dataset.pushData(extractedTableContent);
     },
     failedRequestHandler({ request }) {
         console.log(`Request ${request.url} failed.`);
     },
-    // headless: false
-    // useSessionPool: true, // Use session pool to manage sessions
 });
 
 crawler.addRequests([
     'http://steamdb.info/app/730/charts/'
 ]);
+
+function extractTableContent(tableSource: HTMLElement | null): Record<string, any> {
+    if (tableSource === null) return {}
+    const tableContent: Record<string, any> = {};
+    const rows = tableSource?.querySelectorAll('tr');
+    rows?.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 2) {
+            const key = cells[0].innerText.trim();
+            let value: any = cells[1].innerText.trim();
+                
+            const linkElement = cells[1].querySelector('a');
+            if (linkElement) {
+                value = {
+                    text: linkElement.innerText.trim(),
+                    href: linkElement.getAttribute('href') || ''
+                };
+            }
+
+            const osIcons = cells[1].querySelectorAll('svg');
+            if (osIcons.length > 0) {
+                value = Array.from(cells[1].childNodes)
+                    .filter(node => node.nodeType === 3)
+                    .map(node => node.textContent?.trim())
+                    .filter(text => text);
+            }
+            tableContent[key] = value;
+        }
+    })
+    return tableContent
+}
 
 async function crawlerRun() {
     await crawler.run();
