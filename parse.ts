@@ -31,12 +31,14 @@ function extractTableContent(tableSource: HTMLElement | null): Record<string, an
         const cells = row.querySelectorAll('td');
         if (cells.length === 2) {
             const key = cells[0].innerText.trim();
-            let value: any = stingToNumber(cells[1].innerText.trim());
+            let value: any = parseStringOrNumber(cells[1].innerText.trim());
+            if (typeof value == `string` && (value as string).search(/\d{2} \w{3,9} \d{4} – \d{2}:\d{2}:\d{2}/) == 0) {console.log(value)};
+            
                 
             const linkElement = cells[1].querySelector('a');
             if (linkElement) {
                 value = {
-                    text: linkElement.innerText.trim(),
+                    text: parseStringOrNumber(linkElement.innerText.trim()),
                     href: linkElement.getAttribute('href')
                 };
             }
@@ -57,7 +59,7 @@ function extractTableContent(tableSource: HTMLElement | null): Record<string, an
     return tableContent
 }
 
-function stingToNumber(inputString: string): string | number {
+function parseStringOrNumber(inputString: string): string | number {
     const number = Number(inputString)
     if (isNaN(number)) return inputString; 
     else return number
