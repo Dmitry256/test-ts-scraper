@@ -30,7 +30,7 @@ function extractTableContent(tableSource: HTMLElement | null): Record<string, an
         const cells = row.querySelectorAll('td');
         if (cells.length === 2) {
             const key = cells[0].innerText.trim();
-            let value: any = cells[1].innerText.trim();
+            let value: any = stingToNumber(cells[1].innerText.trim());
                 
             const linkElement = cells[1].querySelector('a');
             if (linkElement) {
@@ -49,9 +49,16 @@ function extractTableContent(tableSource: HTMLElement | null): Record<string, an
             }
             tableContent[key] = value;
         }
-    })
+    });
+
     return tableContent
 }
+
+function stingToNumber(inputString: string): string | number {
+    const number = Number(inputString)
+    if (isNaN(number)) return inputString; 
+    else return number
+};
 
 async function fetchGameData(url: string) {
     crawler.addRequests([url]);
