@@ -32,25 +32,26 @@ function extractTableContent(tableSource: HTMLElement | null): Record<string, an
         if (cells.length === 2) {
             const key = cells[0].innerText.trim();
             let value: any = parseStringOrNumber(cells[1].innerText.trim());
-            if (typeof value == `string` && (value as string).search(/\d{2} \w{3,9} \d{4} – \d{2}:\d{2}:\d{2}/) == 0) {console.log(value)};
-            
-                
-            const linkElement = cells[1].querySelector('a');
-            if (linkElement) {
-                value = {
-                    text: parseStringOrNumber(linkElement.innerText.trim()),
-                    href: linkElement.getAttribute('href')
-                };
-            }
 
-            const osIcons = cells[1].querySelectorAll('svg');
-            if (osIcons.length > 0) {
-                const steamDeckPlayable = cells[1].querySelectorAll('[aria-label="Steam Deck: Playable"]')
-                value = Array.from(cells[1].childNodes)
-                    .filter(node => node.nodeType === NodeType.TEXT_NODE)
-                    .map(node => node.textContent?.trim())
-                    .filter(text => text);
-                if (steamDeckPlayable.length > 0) {value.push('Steam Deck')};
+            if (isString(value)) { value = parseStringOrDate(value) };
+            
+            if (isString(value)) {
+                const linkElement = cells[1].querySelector('a');
+                if (linkElement) {
+                    value = {
+                        text: parseStringOrNumber(linkElement.innerText.trim()),
+                        href: linkElement.getAttribute('href')
+                    };
+                }
+                const osIcons = cells[1].querySelectorAll('svg');
+                if (osIcons.length > 0) {
+                    const steamDeckPlayable = cells[1].querySelectorAll('[aria-label="Steam Deck: Playable"]')
+                    value = Array.from(cells[1].childNodes)
+                        .filter(node => node.nodeType === NodeType.TEXT_NODE)
+                        .map(node => node.textContent?.trim())
+                        .filter(text => text);
+                    if (steamDeckPlayable.length > 0) {value.push('Steam Deck')};
+                };    
             }
             tableContent[key] = value;
         }
@@ -59,11 +60,22 @@ function extractTableContent(tableSource: HTMLElement | null): Record<string, an
     return tableContent
 }
 
+function isString(value: any): boolean {
+    return typeof value === 'string';
+}
+
 function parseStringOrNumber(inputString: string): string | number {
     const number = Number(inputString)
     if (isNaN(number)) return inputString; 
     else return number
 };
+
+function parseStringOrDate(inputString: string): string | Date {
+    if (inputString.search(/\d{2} \w{3,9} \d{4} – \d{2}:\d{2}:\d{2} (UTC)/) == 0) {
+        const dateArray = inputString.split(' ');
+        return new Date(`${ dateArray[1] } ${ dateArray[0] }, ${ dateArray[2] } ${ dateArray[4] } ${ dateArray[5] }`);
+    } else return inputString
+}
 
 async function fetchGameData(url: string) {
     crawler.addRequests([url]);
@@ -74,4 +86,3 @@ async function fetchGameData(url: string) {
 }
 
 fetchGameData('http://steamdb.info/app/730/charts/')
-// fetchGameData('http://steamdb.info/app/2987980/charts/')
