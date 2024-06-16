@@ -21,8 +21,6 @@ const crawler = new PlaywrightCrawler({
     }
 });
 
-
-
 function extractTableContent(tableSource: HTMLElement | null): Record<string, any> {
     if (tableSource === null) return {};
     const tableContent: Record<string, any> = {};
@@ -37,32 +35,38 @@ function extractTableContent(tableSource: HTMLElement | null): Record<string, an
             
             if (isString(value)) {
                 const linkElement = cells[1].querySelector('a');
-                if (linkElement) {
-                    value = {
-                        text: parseStringOrNumber(linkElement.innerText.trim()),
-                        href: linkElement.getAttribute('href')
-                    };
-                }
-                const osIcons = cells[1].querySelectorAll('svg');
-                if (osIcons.length > 0) {
-                    const steamDeckPlayable = cells[1].querySelectorAll('[aria-label="Steam Deck: Playable"]')
-                    value = Array.from(cells[1].childNodes)
-                        .filter(node => node.nodeType === NodeType.TEXT_NODE)
-                        .map(node => node.textContent?.trim())
-                        .filter(text => text);
-                    if (steamDeckPlayable.length > 0) {value.push('Steam Deck')};
-                };    
-            }
+                if (linkElement) { value = linkElementParse(linkElement);}
+                else {
+                    const osIcons = cells[1].querySelectorAll('svg');
+                    if (osIcons.length > 0) { value = supportedSystemsElementParse(cells[1])};
+                };
+            };
             tableContent[key] = value;
-        }
+        };
     });
-
     return tableContent
+};
+
+function supportedSystemsElementParse(supportedSystemsCell: HTMLElement): string[] {
+    const steamDeckPlayable = supportedSystemsCell.querySelectorAll('[aria-label="Steam Deck: Playable"]')
+    const systemsArray = Array.from(supportedSystemsCell.childNodes)
+        .filter(node => node.nodeType === NodeType.TEXT_NODE)
+        .map(node => node.textContent?.trim())
+        .filter(text => text);
+    if (steamDeckPlayable.length > 0) {systemsArray.push('Steam Deck')};
+    return systemsArray
+}
+
+function linkElementParse(linkElement: HTMLElement) {
+    return {
+        text: parseStringOrNumber(linkElement.innerText.trim()),
+        href: linkElement.getAttribute('href')
+    };
 }
 
 function isString(value: any): boolean {
     return typeof value === 'string';
-}
+};
 
 function parseStringOrNumber(inputString: string): string | number {
     const number = Number(inputString)
@@ -75,7 +79,7 @@ function parseStringOrDate(inputString: string): string | Date {
         const dateArray = inputString.split(' ');
         return new Date(`${ dateArray[1] } ${ dateArray[0] }, ${ dateArray[2] } ${ dateArray[4] } ${ dateArray[5] }`);
     } else return inputString
-}
+};
 
 async function fetchGameData(url: string) {
     crawler.addRequests([url]);
@@ -83,6 +87,6 @@ async function fetchGameData(url: string) {
     console.log('Crawler finished.');
     const storedData = await Dataset.getData();
     console.log(JSON.stringify(storedData.items, null, 2));
-}
+};
 
 fetchGameData('http://steamdb.info/app/730/charts/')
