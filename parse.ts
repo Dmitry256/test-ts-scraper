@@ -15,8 +15,12 @@ const crawler = new PlaywrightCrawler({
         const htmlSource: string = await page.content();
         const fullPageElement = parse(htmlSource);
         const tableSource = fullPageElement.querySelector('.span8 .table.table-bordered.table-hover.table-responsive-flex');
-        const extractedTableContent = extractTableContent(tableSource);
-        await Dataset.pushData(extractedTableContent);
+        if (tableSource) {
+            const extractedTableContent = extractTableContent(tableSource);
+            await Dataset.pushData(extractedTableContent);
+        } else {
+            log.warning('Table not found, try one more time')
+        }
     },
     failedRequestHandler({ request }) {
         console.log(`Request ${request.url} failed.`);

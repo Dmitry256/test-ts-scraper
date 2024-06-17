@@ -17,17 +17,20 @@ async function fetchGameData(url: string) {
         timezoneId: 'America/New_York',
     });
     const page = await context.newPage();
-
     console.log("Parsing game data with stealth plugin..");
     await page.goto(url, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(5000)
     const htmlSource: string = await page.content();
     const fullPageElement = parse(htmlSource);
     const tableSource = fullPageElement.querySelector('.span8 .table.table-bordered.table-hover.table-responsive-flex');
-    const extractedTableContent = extractTableContent(tableSource);
-    await saveData('gameData.json', extractedTableContent);
-    await readFileToLog();
-    console.log("All done, check the file: storage/gameData.json. ✨");
+    if (tableSource) {
+        const extractedTableContent = extractTableContent(tableSource);
+        await saveData('gameData.json', extractedTableContent);
+        await displayFileContent();
+        console.log("All done, check the file: storage/gameData.json. ✨");
+    } else {
+        console.log('Table not found, try one more time')
+    }
     await browser.close();
 };
 
@@ -40,7 +43,7 @@ async function saveData(filename: string, data: any) {
     });
 };
 
-async function readFileToLog() {
+async function displayFileContent() {
     console.log(await readFile(
         resolve(__dirname, `storage/gameData.json`),
         { encoding: 'utf8' },

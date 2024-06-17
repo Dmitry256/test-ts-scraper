@@ -14,14 +14,12 @@ export function extractTableContent(tableSource: HTMLElement | null): Record<str
 
             if (isString(value)) { value = parseStringOrDate(value) };
 
-            if (isString(value)) {
-                const linkElement = cells[1].querySelector('a');
-                if (linkElement) { value = linkElementParse(linkElement); }
+            const linkElement = cells[1].querySelector('a');
+            if (linkElement) { value = linkElementParse(linkElement); }
                 else {
                     const osIcons = cells[1].querySelectorAll('svg');
                     if (osIcons.length > 0) { value = supportedSystemsElementParse(cells[1]) };
                 };
-            };
             tableContent[key] = value;
         };
     });
