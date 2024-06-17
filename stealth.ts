@@ -3,8 +3,8 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 import { readFile, writeFile } from 'fs/promises';
-
-
+import { parse } from 'node-html-parser';
+import { extractTableContent } from "./utils"
 
 
 chromium.use(StealthPlugin());
@@ -19,19 +19,33 @@ chromium.use(StealthPlugin());
     });
     const page = await context.newPage();
 
-    console.log("Testing the stealth plugin..");
+    console.log("Parsing game data with stealth plugin..");
     await page.goto("https://steamdb.info/app/730/charts/", { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(5000)
-    await page.screenshot({ path: "screenshot.png", fullPage: true });
+    // await page.screenshot({ path: "screenshot.png", fullPage: true });
+    const htmlSource: string = await page.content();
+    const fullPageElement = parse(htmlSource);
+    const tableSource = fullPageElement.querySelector('.span8 .table.table-bordered.table-hover.table-responsive-flex');
+    const extractedTableContent = extractTableContent(tableSource);
+    await saveData('gameData.json', extractedTableContent);
+    await readFileToLog();
     console.log("All done, check the screenshot. ✨");
     await browser.close();
 })();
 
-function saveData(filename: string, data: any) {
-    if (!existsSync(resolve(__dirname, 'data'))) {
-        mkdirSync('data');
+async function saveData(filename: string, data: any) {
+    if (!existsSync(resolve(__dirname, 'storage'))) {
+        mkdirSync('storage');
     }
-    writeFile(resolve(__dirname, `data/${filename}.json`), JSON.stringify(data), {
+    await writeFile(resolve(__dirname, `storage/${filename}`), JSON.stringify(data, null, 2), {
         encoding: 'utf8',
     });
-}
+};
+
+async function readFileToLog() {
+    console.log(await readFile(
+        resolve(__dirname, `storage/gameData.json`),
+        { encoding: 'utf8' },
+    )
+    )
+};
