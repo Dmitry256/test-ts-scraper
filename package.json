@@ -1,11 +1,11 @@
 {
   "name": "test-ts-scraper",
   "version": "1.0.0",
-  "main": "parse.ts",
+  "main": "src/parse.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "parse": "ts-node ./parse.ts",
-    "stealth": "ts-node ./stealth.ts"
+    "parse": "ts-node ./src/parse.ts",
+    "stealth": "ts-node ./src/stealth.ts"
   },
   "author": "",
   "license": "ISC",

@@ -7,6 +7,7 @@ import { extractTableContent, GAME_URL, getTableSourceFromPage } from "./utils"
 
 const DATA_FILENAME = "gameData.json";
 const DATA_DIRNAME = "storage";
+const ROOT_DIR = resolve(__dirname, "..")
 
 chromium.use(StealthPlugin());
 
@@ -35,17 +36,17 @@ async function fetchGameData(url: string) {
 };
 
 async function saveData(filename: string, data: any) {
-    if (!existsSync(resolve(__dirname, DATA_DIRNAME))) {
-        mkdirSync(DATA_DIRNAME);
+    if (!existsSync(resolve(ROOT_DIR, DATA_DIRNAME))) {
+        mkdirSync(resolve(ROOT_DIR, DATA_DIRNAME));
     }
-    await writeFile(resolve(__dirname, `${DATA_DIRNAME}/${filename}`), JSON.stringify(data, null, 2), {
+    await writeFile(resolve(ROOT_DIR,`${DATA_DIRNAME}/${filename}`), JSON.stringify(data, null, 2), {
         encoding: 'utf8',
     });
 };
 
 async function displayFileContent() {
     console.log(await readFile(
-        resolve(__dirname, `${DATA_DIRNAME}/${DATA_FILENAME}`),
+        resolve(ROOT_DIR, `${DATA_DIRNAME}/${DATA_FILENAME}`),
         { encoding: 'utf8' },
     )
     )
