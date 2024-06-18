@@ -1,6 +1,5 @@
 import { PlaywrightCrawler, Dataset } from '@crawlee/playwright';
-import { parse } from 'node-html-parser';
-import {extractTableContent, TABLE_SELECTOR, GAME_URL} from "./utils"
+import {extractTableContent, GAME_URL, getTableSourceFromPage} from "./utils"
 
 
 const crawler = new PlaywrightCrawler({
@@ -12,9 +11,7 @@ const crawler = new PlaywrightCrawler({
             timeout: 60000,
         });
         await page.waitForTimeout(5000);
-        const htmlSource: string = await page.content();
-        const fullPageElement = parse(htmlSource);
-        const tableSource = fullPageElement.querySelector(TABLE_SELECTOR);
+        const tableSource = await getTableSourceFromPage(page);
         if (tableSource) {
             const extractedTableContent = extractTableContent(tableSource);
             await Dataset.pushData(extractedTableContent);

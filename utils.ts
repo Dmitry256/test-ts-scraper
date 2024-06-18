@@ -1,11 +1,19 @@
 import { parse, HTMLElement, NodeType } from 'node-html-parser';
+import { Page } from 'playwright'
+
 
 /**Константа для выбора таблицы с необходимыми данными */
-export const TABLE_SELECTOR = ".span8 .table.table-bordered.table-hover.table-responsive-flex"
+const TABLE_SELECTOR = ".span8 .table.table-bordered.table-hover.table-responsive-flex"
 
 /**URL страницы*/
 export const GAME_URL = "http://steamdb.info/app/730/charts/"
 
+
+export async function getTableSourceFromPage(page:Page): Promise<HTMLElement | null> {
+    const htmlSource: string = await page.content();
+    const fullPageElement = parse(htmlSource);
+    return fullPageElement.querySelector(TABLE_SELECTOR);
+}
 
 
 export function extractTableContent(tableSource: HTMLElement | null): Record<string, any> {

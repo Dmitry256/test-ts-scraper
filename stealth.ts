@@ -3,8 +3,7 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 import { readFile, writeFile } from 'fs/promises';
-import { parse } from 'node-html-parser';
-import { extractTableContent, GAME_URL, TABLE_SELECTOR } from "./utils"
+import { extractTableContent, GAME_URL, getTableSourceFromPage } from "./utils"
 
 const DATA_FILENAME = "gameData.json";
 const DATA_DIRNAME = "storage";
@@ -23,9 +22,7 @@ async function fetchGameData(url: string) {
     console.log("Parsing game data with stealth plugin..");
     await page.goto(url, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(5000)
-    const htmlSource: string = await page.content();
-    const fullPageElement = parse(htmlSource);
-    const tableSource = fullPageElement.querySelector(TABLE_SELECTOR);
+    const tableSource = await getTableSourceFromPage(page);
     if (tableSource) {
         const extractedTableContent = extractTableContent(tableSource);
         await saveData(DATA_FILENAME, extractedTableContent);
@@ -33,7 +30,7 @@ async function fetchGameData(url: string) {
         console.log(`All done, check the file: ${DATA_DIRNAME}/${DATA_FILENAME}. ✨`);
     } else {
         console.warn('Table not found, try one more time')
-    }
+    };
     await browser.close();
 };
 
@@ -53,4 +50,4 @@ async function displayFileContent() {
     )
     )
 };
-fetchGameData(GAME_URL)
+fetchGameData(GAME_URL);
