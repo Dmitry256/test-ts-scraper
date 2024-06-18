@@ -4,7 +4,10 @@ import { existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'node-html-parser';
-import { extractTableContent } from "./utils"
+import { extractTableContent, GAME_URL, TABLE_SELECTOR } from "./utils"
+
+const DATA_FILENAME = "gameData.json";
+const DATA_DIRNAME = "storage";
 
 chromium.use(StealthPlugin());
 
@@ -22,32 +25,32 @@ async function fetchGameData(url: string) {
     await page.waitForTimeout(5000)
     const htmlSource: string = await page.content();
     const fullPageElement = parse(htmlSource);
-    const tableSource = fullPageElement.querySelector('.span8 .table.table-bordered.table-hover.table-responsive-flex');
+    const tableSource = fullPageElement.querySelector(TABLE_SELECTOR);
     if (tableSource) {
         const extractedTableContent = extractTableContent(tableSource);
-        await saveData('gameData.json', extractedTableContent);
+        await saveData(DATA_FILENAME, extractedTableContent);
         await displayFileContent();
-        console.log("All done, check the file: storage/gameData.json. ✨");
+        console.log(`All done, check the file: ${DATA_DIRNAME}/${DATA_FILENAME}. ✨`);
     } else {
-        console.log('Table not found, try one more time')
+        console.warn('Table not found, try one more time')
     }
     await browser.close();
 };
 
 async function saveData(filename: string, data: any) {
-    if (!existsSync(resolve(__dirname, 'storage'))) {
-        mkdirSync('storage');
+    if (!existsSync(resolve(__dirname, DATA_DIRNAME))) {
+        mkdirSync(DATA_DIRNAME);
     }
-    await writeFile(resolve(__dirname, `storage/${filename}`), JSON.stringify(data, null, 2), {
+    await writeFile(resolve(__dirname, `${DATA_DIRNAME}/${filename}`), JSON.stringify(data, null, 2), {
         encoding: 'utf8',
     });
 };
 
 async function displayFileContent() {
     console.log(await readFile(
-        resolve(__dirname, `storage/gameData.json`),
+        resolve(__dirname, `${DATA_DIRNAME}/${DATA_FILENAME}`),
         { encoding: 'utf8' },
     )
     )
 };
-fetchGameData('http://steamdb.info/app/730/charts/')
+fetchGameData(GAME_URL)

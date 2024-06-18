@@ -1,6 +1,6 @@
 import { PlaywrightCrawler, Dataset } from '@crawlee/playwright';
 import { parse } from 'node-html-parser';
-import {extractTableContent} from "./utils"
+import {extractTableContent, TABLE_SELECTOR, GAME_URL} from "./utils"
 
 
 const crawler = new PlaywrightCrawler({
@@ -14,7 +14,7 @@ const crawler = new PlaywrightCrawler({
         await page.waitForTimeout(5000);
         const htmlSource: string = await page.content();
         const fullPageElement = parse(htmlSource);
-        const tableSource = fullPageElement.querySelector('.span8 .table.table-bordered.table-hover.table-responsive-flex');
+        const tableSource = fullPageElement.querySelector(TABLE_SELECTOR);
         if (tableSource) {
             const extractedTableContent = extractTableContent(tableSource);
             await Dataset.pushData(extractedTableContent);
@@ -35,4 +35,4 @@ async function fetchGameData(url: string) {
     console.log(JSON.stringify(storedData.items, null, 2));
 };
 
-fetchGameData('http://steamdb.info/app/730/charts/')
+fetchGameData(GAME_URL)

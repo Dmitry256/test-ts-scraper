@@ -1,5 +1,11 @@
 import { parse, HTMLElement, NodeType } from 'node-html-parser';
 
+/**Константа для выбора таблицы с необходимыми данными */
+export const TABLE_SELECTOR = ".span8 .table.table-bordered.table-hover.table-responsive-flex"
+
+/**URL страницы*/
+export const GAME_URL = "http://steamdb.info/app/730/charts/"
+
 
 
 export function extractTableContent(tableSource: HTMLElement | null): Record<string, any> {
@@ -36,7 +42,10 @@ function supportedSystemsElementParse(supportedSystemsCell: HTMLElement): string
     return systemsArray
 }
 
-function linkElementParse(linkElement: HTMLElement) {
+function linkElementParse(linkElement: HTMLElement): {
+    text: string | number;
+    href: string | undefined;
+} {
     return {
         text: parseStringOrNumber(linkElement.innerText.trim()),
         href: linkElement.getAttribute('href')
@@ -56,6 +65,7 @@ function parseStringOrNumber(inputString: string): string | number {
 function parseStringOrDate(inputString: string): string | Date {
     if (inputString.search(/\d{2} \w{3,9} \d{4} – \d{2}:\d{2}:\d{2} (UTC)/) == 0) {
         const dateArray = inputString.split(' ');
-        return new Date(`${dateArray[1]} ${dateArray[0]}, ${dateArray[2]} ${dateArray[4]} ${dateArray[5]}`);
+        const [day, month, year, _, time, timezone] = dateArray
+        return new Date(`${month} ${day}, ${year} ${time} ${timezone}`);
     } else return inputString
 };
