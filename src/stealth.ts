@@ -7,48 +7,72 @@ import { extractTableContent, GAME_URL, getTableSourceFromPage } from "./utils"
 
 const DATA_FILENAME = "gameData.json";
 const DATA_DIRNAME = "storage";
-const ROOT_DIR = resolve(__dirname, "..")
+const ROOT_DIR = resolve(__dirname, "..");
+const MAX_RETRIES = 3;
+const RETRY_TIMEOUT_INCREMENT = 5000;
 
 chromium.use(StealthPlugin());
 
 async function fetchGameData(url: string) {
+  let attempts = 0;
+  let tableFound = false;
+  let timeout = 0;
+
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    viewport: { width: 1920, height: 1080 },
-    locale: 'en-US',
-    timezoneId: 'America/New_York',
-  });
-  const page = await context.newPage();
-  console.log("Parsing game data with stealth plugin..");
-  await page.goto(url, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(5000)
-  const tableSource = await getTableSourceFromPage(page);
-  if (tableSource) {
-    const extractedTableContent = extractTableContent(tableSource);
-    await saveData(DATA_FILENAME, extractedTableContent);
-    await displayFileContent();
-    console.log(`All done, check the file: ${DATA_DIRNAME}/${DATA_FILENAME}. ✨`);
-  } else {
-    console.warn('Table not found, try one more time')
+
+  while (attempts < MAX_RETRIES && !tableFound) {
+    timeout += RETRY_TIMEOUT_INCREMENT * attempts
+    attempts++;
+    console.log(`Attempt ${attempts} to fetch and parse game data...`);
+    const page = await browser.newPage();
+
+    console.log("Parsing game data with stealth plugin..");
+    try {
+      await page.goto(url, { waitUntil: "domcontentloaded" });
+    } catch(error) {
+      console.error('Error:', error);
+    };
+    await page.waitForTimeout(timeout);
+
+    const tableSource = await getTableSourceFromPage(page);
+
+    if (tableSource) {
+      tableFound = true;
+
+      const extractedTableContent = extractTableContent(tableSource);
+      await saveData(DATA_FILENAME, extractedTableContent);
+      await displayFileContent();
+      console.log(`All done, check the file: ${DATA_DIRNAME}/${DATA_FILENAME}. ✨`);
+    } else {
+      console.warn('Table not found, retrying...')
+    };
+
+    await page.close();
+
+    if (!tableFound && attempts >= MAX_RETRIES) {
+      console.error("Maximum retries reached. Table could not be found.");
+    };
   };
+
   await browser.close();
 };
 
 async function saveData(filename: string, data: any) {
-  if (!existsSync(resolve(ROOT_DIR, DATA_DIRNAME))) {
-    mkdirSync(resolve(ROOT_DIR, DATA_DIRNAME));
+  const dataDirAbsolutePath = resolve(ROOT_DIR, DATA_DIRNAME)
+  if (!existsSync(dataDirAbsolutePath)) {
+    mkdirSync(dataDirAbsolutePath);
   }
-  await writeFile(resolve(ROOT_DIR, `${DATA_DIRNAME}/${filename}`), JSON.stringify(data, null, 2), {
+  await writeFile(resolve(dataDirAbsolutePath, filename), JSON.stringify(data, null, 2), {
     encoding: 'utf8',
   });
 };
 
 async function displayFileContent() {
   console.log(await readFile(
-    resolve(ROOT_DIR, `${DATA_DIRNAME}/${DATA_FILENAME}`),
+    resolve(ROOT_DIR, DATA_DIRNAME, DATA_FILENAME),
     { encoding: 'utf8' },
   )
   )
 };
+
 fetchGameData(GAME_URL);

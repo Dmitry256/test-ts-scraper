@@ -60,7 +60,7 @@ function linkElementParse(linkElement: HTMLElement): {
   };
 }
 
-function isString(value: any): boolean {
+function isString(value: any): value is string {
   return typeof value === 'string';
 };
 
