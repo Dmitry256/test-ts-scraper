@@ -1,5 +1,6 @@
 import { parse, HTMLElement, NodeType } from 'node-html-parser';
-import { Page } from 'playwright'
+import { Page } from 'playwright';
+import { ParsedHTMLEementType, ParsedLinkElementType } from './types'
 
 
 /**Константа для выбора таблицы с необходимыми данными */
@@ -16,7 +17,7 @@ export async function getTableSourceFromPage(page: Page): Promise<HTMLElement | 
 }
 
 
-export function extractTableContent(tableSource: HTMLElement | null): Record<string, any> {
+export function extractTableContent(tableSource: HTMLElement | null): Record<string, ParsedHTMLEementType> {
   if (tableSource === null) return {};
   const tableContent: Record<string, any> = {};
   const rows = tableSource.querySelectorAll('tr');
@@ -24,7 +25,7 @@ export function extractTableContent(tableSource: HTMLElement | null): Record<str
     const cells = row.querySelectorAll('td');
     if (cells.length === 2) {
       const key = cells[0].innerText.trim();
-      let value: any = parseStringOrNumber(cells[1].innerText.trim());
+      let value: ParsedHTMLEementType = parseStringOrNumber(cells[1].innerText.trim());
 
       if (isString(value)) { value = parseStringOrDate(value) };
 
@@ -40,7 +41,7 @@ export function extractTableContent(tableSource: HTMLElement | null): Record<str
   return tableContent
 };
 
-function supportedSystemsElementParse(supportedSystemsCell: HTMLElement): string[] {
+function supportedSystemsElementParse(supportedSystemsCell: HTMLElement): Array<string> {
   const steamDeckPlayable = supportedSystemsCell.querySelectorAll('[aria-label="Steam Deck: Playable"]')
   const systemsArray = Array.from(supportedSystemsCell.childNodes)
     .filter(node => node.nodeType === NodeType.TEXT_NODE)
@@ -50,10 +51,9 @@ function supportedSystemsElementParse(supportedSystemsCell: HTMLElement): string
   return systemsArray
 }
 
-function linkElementParse(linkElement: HTMLElement): {
-  text: string | number;
-  href: string | undefined;
-} {
+
+
+function linkElementParse(linkElement: HTMLElement): ParsedLinkElementType {
   return {
     text: parseStringOrNumber(linkElement.innerText.trim()),
     href: linkElement.getAttribute('href')
