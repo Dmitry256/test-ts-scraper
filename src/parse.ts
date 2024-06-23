@@ -40,14 +40,17 @@ async function fetchGameData(url: string) {
   let finalStatistic = await crawler.run();
   console.log('Crawler finished.');
   if (finalStatistic.requestsFinished > 0) {
-    const storedData = await Dataset.getData();
-    console.log(JSON.stringify(storedData.items, null, 2));
+    // const storedData = await Dataset.getData();
+    Dataset.getData().then((storedData) => { console.log(JSON.stringify(storedData.items, null, 2)); }
+    )
+    // console.log(JSON.stringify(storedData.items, null, 2));
 
-    const dataDirAbsolutePath = resolve(ROOT_DIR, DATA_DIRNAME)
-    await Dataset.exportToJSON(
+    const dataDirAbsolutePath = resolve(ROOT_DIR, DATA_DIRNAME);
+    console.error('starting exportToJSON');
+    Dataset.exportToJSON(
       DATA_FILENAME,
       { toKVS: dataDirAbsolutePath }
-    );
+    ).then(() => { console.error('finish exportToJSON') });
   };
 };
 
