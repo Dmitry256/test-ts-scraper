@@ -5,7 +5,7 @@ import { resolve } from 'path';
 import { readFile, writeFile } from 'fs/promises';
 import { extractTableContent, GAME_URL, getTableSourceFromPage } from "./utils"
 
-const DATA_FILENAME = "gameData.json";
+const DATA_FILENAME = "gameDataFromStealth.json";
 const DATA_DIRNAME = "storage";
 const ROOT_DIR = resolve(__dirname, "..");
 const MAX_RETRIES = 3;
