@@ -39,18 +39,17 @@ async function fetchGameData(url: string) {
   crawler.log.setLevel(LogLevel.INFO);
   let finalStatistic = await crawler.run();
   console.log('Crawler finished.');
-  if (finalStatistic.requestsFinished > 0) {
-    // const storedData = await Dataset.getData();
-    Dataset.getData().then((storedData) => { console.log(JSON.stringify(storedData.items, null, 2)); }
-    )
-    // console.log(JSON.stringify(storedData.items, null, 2));
 
+  if (finalStatistic.requestsFinished > 0) {
     const dataDirAbsolutePath = resolve(ROOT_DIR, DATA_DIRNAME);
-    console.error('starting exportToJSON');
-    Dataset.exportToJSON(
-      DATA_FILENAME,
-      { toKVS: dataDirAbsolutePath }
-    ).then(() => { console.error('finish exportToJSON') });
+    const [storedData] = await Promise.all([
+      Dataset.getData(),
+      Dataset.exportToJSON(
+        DATA_FILENAME,
+        { toKVS: dataDirAbsolutePath }
+      )
+    ])
+    console.log(JSON.stringify(storedData.items, null, 2));
   };
 };
 
