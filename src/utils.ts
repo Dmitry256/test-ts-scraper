@@ -9,6 +9,14 @@ const TABLE_SELECTOR = ".span8 .table.table-bordered.table-hover.table-responsiv
 /**URL страницы*/
 export const GAME_URL = "http://steamdb.info/app/730/charts/"
 
+/**Шаг для увеличения времени ожидания загрузки страницы при каждом retry */
+export const RETRY_TIMEOUT_INCREMENT = 5000;
+
+/**Максимальное количество попыток */
+export const MAX_RETRIES = 3;
+
+/**Абсолютный путь к корневой директории*/
+export const ROOT_DIR = process.cwd();
 
 export async function getTableSourceFromPage(page: Page): Promise<HTMLElement | null> {
   const htmlSource: string = await page.content();

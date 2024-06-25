@@ -1,17 +1,13 @@
 import { PlaywrightCrawler, Dataset, LogLevel } from '@crawlee/playwright';
-import { extractTableContent, GAME_URL, getTableSourceFromPage } from "./utils";
+import { extractTableContent, GAME_URL, ROOT_DIR, RETRY_TIMEOUT_INCREMENT,
+  getTableSourceFromPage, MAX_RETRIES } from "./utils";
 import { resolve } from 'path';
-
-/**Шаг для увеличения времени ожидания загрузки страницы при каждом retry */
-const RETRY_TIMEOUT_INCREMENT = 5000;
 
 const DATA_FILENAME = "gameDataFromCrowler.json";
 const DATA_DIRNAME = "storage";
-const ROOT_DIR = resolve(__dirname, "..");
-
 
 const crawler = new PlaywrightCrawler({
-  maxRequestRetries: 4,
+  maxRequestRetries: MAX_RETRIES,
   async requestHandler({ page, request, log }) {
     log.setOptions
     const { url, retryCount } = request; //const url = request.url; const retryCount = request.retryCount
@@ -49,7 +45,7 @@ async function fetchGameData(url: string) {
         { toKVS: dataDirAbsolutePath }
       )
     ])
-    console.log(JSON.stringify(storedData.items, null, 2));
+    console.log(JSON.stringify(storedData.items[0], null, 2));
   };
 };
 

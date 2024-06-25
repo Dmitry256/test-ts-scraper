@@ -1,15 +1,14 @@
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { existsSync, mkdirSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { readFile, writeFile } from 'fs/promises';
-import { extractTableContent, GAME_URL, getTableSourceFromPage } from "./utils"
+import { extractTableContent, GAME_URL, ROOT_DIR, RETRY_TIMEOUT_INCREMENT,
+   getTableSourceFromPage, MAX_RETRIES } from "./utils"
 
 const DATA_FILENAME = "gameDataFromStealth.json";
 const DATA_DIRNAME = "storage";
-const ROOT_DIR = resolve(__dirname, "..");
-const MAX_RETRIES = 3;
-const RETRY_TIMEOUT_INCREMENT = 5000;
+const dataFileAbsolutePath = resolve(ROOT_DIR, DATA_DIRNAME, DATA_FILENAME);
 
 chromium.use(StealthPlugin());
 
@@ -40,8 +39,8 @@ async function fetchGameData(url: string) {
       tableFound = true;
 
       const extractedTableContent = extractTableContent(tableSource);
-      await saveData(DATA_FILENAME, extractedTableContent);
-      await displayFileContent();
+      await saveData(dataFileAbsolutePath, extractedTableContent);
+      await displayFileContent(dataFileAbsolutePath);
       console.log(`All done, check the file: ${DATA_DIRNAME}/${DATA_FILENAME}. ✨`);
     } else {
       console.warn('Table not found, retrying...')
@@ -57,19 +56,19 @@ async function fetchGameData(url: string) {
   await browser.close();
 };
 
-async function saveData(filename: string, data: any) {
-  const dataDirAbsolutePath = resolve(ROOT_DIR, DATA_DIRNAME)
+async function saveData(filePath: string, data: any) {
+  const dataDirAbsolutePath = dirname(filePath)
   if (!existsSync(dataDirAbsolutePath)) {
     mkdirSync(dataDirAbsolutePath);
   }
-  await writeFile(resolve(dataDirAbsolutePath, filename), JSON.stringify(data, null, 2), {
+  await writeFile(filePath, JSON.stringify(data, null, 2), {
     encoding: 'utf8',
   });
 };
 
-async function displayFileContent() {
+async function displayFileContent(filePath: string) {
   console.log(await readFile(
-    resolve(ROOT_DIR, DATA_DIRNAME, DATA_FILENAME),
+    filePath,
     { encoding: 'utf8' },
   )
   )
