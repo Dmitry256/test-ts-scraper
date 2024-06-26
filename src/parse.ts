@@ -9,7 +9,6 @@ const DATA_DIRNAME = "storage";
 const crawler = new PlaywrightCrawler({
   maxRequestRetries: MAX_RETRIES,
   async requestHandler({ page, request, log }) {
-    log.setOptions
     const { url, retryCount } = request; //const url = request.url; const retryCount = request.retryCount
     log.info(`Processing ${url}...`);
     await page.goto(url, { waitUntil: 'domcontentloaded' });
