@@ -33,10 +33,10 @@ const crawler = new PlaywrightCrawler({
 async function fetchGameData(url: string) {
   crawler.addRequests([url]);
   crawler.log.setLevel(LogLevel.INFO);
-  let finalStatistic = await crawler.run();
+  const { requestsFinished } = await crawler.run();
   console.log('Crawler finished.');
 
-  if (finalStatistic.requestsFinished > 0) {
+  if (requestsFinished > 0) {
     const dataDirAbsolutePath = resolve(ROOT_DIR, DATA_DIRNAME);
     const [storedData] = await Promise.all([
       Dataset.getData(),

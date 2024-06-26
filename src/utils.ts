@@ -73,7 +73,7 @@ function isString(value: any): value is string {
 };
 
 function parseStringOrNumber(inputString: string): string | number {
-  const number = Number(inputString)
+  const number = Number(inputString);
   if (isNaN(number)) return inputString;
   else return number
 };
